@@ -1,0 +1,49 @@
+The task given here is about filtering of data by using a payload consisting of array of  four objects.Since it has lot many details than expected.First Lets simplify the payload into a format which we will understand and later on we can use the actual payload.
+Consider the example payload below.
+Here the filtering is done based on the key a which contains two values "home" or "auto".
+Here we need to return highest value of t from the key b along with the other payload.
+
+So first, we need to group the itema based on the key 'a'.
+For that we can use groupBy command and consider the grouped payload as a variable and perform the actual operation on it.
+var grouped is declared in the header section of dataweave.
+after that , since the payload after grouping is an object, we can use mapobject here.
+MapObject works through each element of an object in the presented order and puts the output into an object.
+we can use the simple syantaxes of $ (value), $$ (key), and $$$ (index) for doing transformation.
+For doing the further transormation, we used update function.
+update function updates a field in an object with the specified string value.The function returns a new object with the specified field and value.
+We can update the payload based on certain condition where we update by taking the t values from the payload.
+when the payload obtained agin is an object, we use mapObject and maxBy to get the highest one from the available values.
+Fianlly, To transform the output from an object to array we use pluck function.
+
+
+[
+    {"a":"home", "b": [{"t": 1}, {"t":2} ], "c": 1}, 
+    {"a":"home", "b": [{"t": 1}, {"t":4} ], "c": 2}, 
+    {"a":"auto", "b": [{"t": 1}, {"t":2} ], "c": 3}
+]
+-------------------
+%dw 2.0
+output application/json
+var grouped= payload groupBy $.lineTypeCode
+---
+grouped mapObject{
+($$): $ map ((item) -> item  update {
+    case .b -> [($ orderBy $.t)[-1]]
+})
+} mapObject {
+    ($$): $ maxBy $.b[0].t
+} pluck $
+
+
+------------------------------------------
+%dw 2.0
+output application/json
+var grouped= payload groupBy $.lineTypeCode
+---
+grouped mapObject{
+($$): $ map ((item) -> item  update {
+    case .serviceSummaries.serviceSummaryItem -> [($ orderBy $.effectiveDate)[-1]]
+})
+} mapObject {
+    ($$): $ maxBy $.serviceSummaries.serviceSummaryItem[0].effectiveDate
+} pluck $
